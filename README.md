@@ -1,15 +1,30 @@
-Welcome to your new dbt project!
+# DBT 도입의 필요성
+> ### 1. SQL쿼리를 코드로 관리
+> ### 2. 데이터 오너십
+> ### 3. 데이터 의존성 파악 용이
 
-### Using the starter project
+## Models
 
-Try running the following commands:
-- dbt run
-- dbt test
+### Source(=raw)
+원천테이블 또는 서드파티 데이터(소스 테이블 스키마를 따라간다.)
+
+### Staging
+데이터 모델링의 가장 작은 단위이다. 각 모델은 Source테이블과 `1:1 관계`를 갖는다.
+- Staging Model 규칙
+    - `stg_` 접두사로 구분한다.
+    - 컬럼 네이밍, 타입을 일관적인 방법으로 정리되어야 한다.
+    - `데이터 클렌징이 완료`되어야 한다.
+    - `PK가 Unique`하고, `Not-null`이어야 한다.
+### Mart
+비즈니스와 맞닿아 있는 데이터를 다루는 모델
+- Mart 모델은 `Fact`와 `Dimension` 모델로 구성된다.
+    - `fct_<동사>`: 길고 좁은 테이블
+    (컬럼이 적고 로우가 많은)
+    >Sessions, Transactions, Orders, Stories, votes
+    - `dim_<명사>`: 짧고 넓은 테이블(컬럼이 많고 로우가 적은)
+    > 각 Row가 변경이 가능하지만, 변경주기가 긴 것들이 온다. (ex) 고객, 상품, 직원
 
 
-### Resources:
-- Learn more about dbt [in the docs](https://docs.getdbt.com/docs/introduction)
-- Check out [Discourse](https://discourse.getdbt.com/) for commonly asked questions and answers
-- Join the [chat](https://community.getdbt.com/) on Slack for live discussions and support
-- Find [dbt events](https://events.getdbt.com) near you
-- Check out [the blog](https://blog.getdbt.com/) for the latest news on dbt's development and best practices
+
+
+
