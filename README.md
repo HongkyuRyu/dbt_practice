@@ -1,3 +1,13 @@
+[2024-01-30 공부 진행 중...]
+
+![image](https://github.com/HongkyuRyu/dbt_practice/assets/69923886/5d598439-ae18-4b75-9736-e0911b205687)
+
+실행 하고, Linkeage를 클릭하면 다음과 같이 나온다.
+
+----
+![image](https://github.com/HongkyuRyu/dbt_practice/assets/69923886/1a3ae5d8-7c58-4327-9a6e-d2a18c49e9cf) 
+
+
 # DBT 도입의 필요성
 
 ![image](https://github.com/HongkyuRyu/dbt_practice/assets/69923886/973bfbe7-0e89-4744-9bf5-8f397c742561)
@@ -160,6 +170,69 @@ ex) employee_jobs테이블에서 특정 employee_id의 job_code가 바뀌는 경
 - strategies
     - Timestamp: A `unique Key` and an `updated_at` 필드가 source model에 정의되어야 한다. 해당 필드를 통해, 변경 사항을 정의한다.
     - Check: 컬럼에 대한 변경사항이 있을 때 업데이트 진행
+---
+## Test
+데이터 품질을 테스트하는 방법이다. 
+- 내장 일반 테스트 ("Generic")
+    - unique, not_null, accepter_values, relationships 등의 테스트를 지원한다.
+    > models/schema.yml 파일을 생성한다.
+    ```yml
+    models:
+      - name: 
+        columns:
+          - name:
+            tests:
+            - unique
+            - not_null  
+    ```
+    > dbt test로 실행
+    - models 폴더
+- 커스텀 테스트 ("Singular")
+    - 기본적으로 SELECT로 간단하며, 결과가 리턴되면 `실패`로 간주한다.
+    - tests 폴더
+    > tests/[test할 파일명]생성
+    ```yml
+    SELECT
+     *
+    FROM ~~ 
+    ```
+    방식으로 단위테스트 가능
+
+---
+
+### Macros
+dbt 매크로는 중복으로 사용하는 SQL문을 코드의 변수처럼 받아서 작성하는 것이다.
+
+> ex) User테이블에 생일 컬럼이 있고, 이를 가지고 성인/청소년/유아를 구분한다고 생각해보자.
+
+```SQL
+CASE
+    WHEN birthdate <= '2000-01-01' THEN '성인'
+    WHEN birthdate BETWEEN '2000-01-01' AND '2004-01-01' THEN '청소년'
+    WHEN birthdate >= '2004-01-01' THEN '유아'
+END
+```
+해당 방식은 해가 넘어가면(연도가 변경되면) 하드코딩을 통해, 수정을 해주어야 한다는 문제점이 발생한다.
+
+이를 해결하기 위해, macro를 사용하면, 다음과 같이 변수를 통해 코드를 작성할 수 있다.
+
+```sql
+
+{% macro date_to_age(birth_date) %}
+
+CASE
+    WHEN {{birth_date}} <= '2000-01-01' THEN '성인'
+    WHEN {{birth_date}} BETWEEN '2000-01-01' AND '2004-01-01' THEN '청소년'
+    WHEN {{birth_date}} >= '2004-01-01' THEN '유아'
+END
+
+{% endmacro %}
+
+```
+
+---
+## Documentation
+dbt docs serve로 웹서버를 띄운다.
 
 
 
