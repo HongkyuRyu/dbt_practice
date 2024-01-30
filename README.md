@@ -72,6 +72,13 @@ staging 테이블을 만들 때 입력테이블이 자주 바뀌면, models 밑�
           error_after: {count: 24, period: hour}
     ```
     이 경우, `INSERT INTO` 할 때, 1시간 이상의 차이가 있다면, WARN이 나오고, 24시간 이상 차이가 있다면, ERROR가 나온다.
+![image](https://github.com/HongkyuRyu/dbt_practice/assets/69923886/768b84f7-c4b5-4734-9461-13865e841b11)
+
+![image](https://github.com/HongkyuRyu/dbt_practice/assets/69923886/0951c161-4f46-499a-85a3-b6e9a13f2b34)
+
+---
+
+## Snapshots
 
 
 
