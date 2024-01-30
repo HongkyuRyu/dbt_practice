@@ -1,7 +1,63 @@
 # DBT 도입의 필요성
+
+![image](https://github.com/HongkyuRyu/dbt_practice/assets/69923886/973bfbe7-0e89-4744-9bf5-8f397c742561)
+
 > ### 1. SQL쿼리를 코드로 관리
 > ### 2. 데이터 오너십
 > ### 3. 데이터 의존성 파악 용이
+
+---
+- 데이터 변경 사항에 대한 이해가 쉽다. 
+- 과거 데이터로 롤백 가능
+- 데이터간 Lineage 가능
+- 데이터 품질 테스트 및 오류 보고 가능
+- Fact 테이블의 증분 로드 (Incremental Update)
+- Dimension 테이블 변경 추적 (히스토리 테이블)
+- 용이한 문서 작성
+---
+(DW)
+Redshift / Spark / Snowflake / Bigquery <=======> dbt <----airflow/dagster 등등 (Scheduling)
+
+ETL을 하는 이유는 ELT를 하기 위함이며, 데이터 품질 검증이 중요해졌다.
+
+# 배경지식
+## Database Normalization
+데이터베이스의 정합성을 쉽게 유지하고 레코드들을 수정/적재/삭제를 용이하게 하는 것을 말한다. (1NF, 2NF, 3NF 등등)
+
+## Slowly Changing Dimensions
+DW(Data Warehouse)나 DL(Data Lake)에서는 모든 테이블들의 `히스토리를 유지하는 것이 중요`하다.
+이를 위해, `두개의 timestamp 필드`를 가지는 것이 좋다.
+
+- 1.created_at: 생성시간
+    - 한번 만들어지면 고정됨
+- 2.updated_at
+    - 꼭 필요하다. (necessary)
+    - 마지막 수정 시간을 나타낸다.
+> 해당 경우, 컬럼의 성격에 따라 어떻게 유지할지 방법이 달라진다. 
+- SCP Type0, SCD Type1, SCD Type2, SCD Type3, SCD Type4
+
+> 그렇다면 히스토리를 유지하기 위해 어떻게 할 것인가?
+
+즉, 일부 속성은 시간을 두고 `변하게 되는데` 변경 사항을 DW Table에 어떻게 반영해야하나?
+
+- SCP Type 0
+    - 한번 Write시, 바꿀 이유가 없는 것
+    - 갱신 되지 않고 고정되는 필드
+    - ex) 제품 첫 구매일
+- SCP Type 1
+    - 데이터가 새로 생기면 `덮어쓰면` 되는 컬럼들
+- SCP Type 2
+    - 특정 엔티티에 대한 데이터가 새로운 레코드로 추가되어야 하는 경우
+    - ex) 회원의 등급이 Gold에서 Plantinum으로 상승되었을 경우, 변경시간도 함께 추가되어야 한다.
+- SCP Type 3
+    - SCP Type 2의 대안
+    - 특정 엔티티 데이터가 새로운 `컬럼` 으로 추가되어야 하는 경우
+    - ex) 회원의 등급이 Gold에서 Plantinum으로 상승되었을 경우, `이전 등급이라는 컬럼을 생성`
+- SCP Type 4
+    - 특정 엔티티에 대한 데이터를 `새로운 Dimension테이블에 저장`하는 경우
+    - 별도의 테이블로 저장한다.
+
+----
 
 ## Models
 Raw -> Staging -> Core (dim, fct)
@@ -79,6 +135,32 @@ staging 테이블을 만들 때 입력테이블이 자주 바뀌면, models 밑�
 ---
 
 ## Snapshots
+Dimension 테이블은 성격에 따라 변경이 자주 발생할 수 있다.
+> dbt에서는 테이블의 변화를 지속적으로 기록함으로써 과거 어느 시점이든 다시 돌아가서 테이블의 내용을 볼 수 있는 기능을 말한다.
+
+=> 테이블에 문제가 있을 경우 과거 데이터로 `롤백` 가능
+=> 데이터 관련 문제에 관해 `디버깅`이 쉬워진다.
+>Dimension 테이블에서 특정 엔티티에 대한 데이터가 변경되는 경우
+
+ex) employee_jobs테이블에서 특정 employee_id의 job_code가 바뀌는 경우
+| employee_id | job_code|
+|----------| -------|
+| E001 | J01|
+| E002 | J02|
+| E003 | J02|
+
+- SCP Type 2 => 새로운 Dimension테이블 생성 (history, snapshot 테이블)
+    - 변경된 레코드가 history테이블에 저장
+
+|employee_id|job_code|DBT_VALID_FROM|DBT_VALID_TO|
+|---|---|---|---|
+|E002|J02|2024-01-29|2024-01-30|
+|E002|J03|2024-01-30|NULL|
+
+- strategies
+    - Timestamp: A `unique Key` and an `updated_at` 필드가 source model에 정의되어야 한다. 해당 필드를 통해, 변경 사항을 정의한다.
+    - Check: 컬럼에 대한 변경사항이 있을 때 업데이트 진행
+
 
 
 
