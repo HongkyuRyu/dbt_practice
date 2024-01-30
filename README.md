@@ -40,8 +40,7 @@ Raw -> Staging -> Core (dim, fct)
 - Ephemeral
     - 같은 모델을 반복적으로 읽을 때는 사용하지 않는다.
     - 한 SELECT문에 자주 사용되는 데이터를 모듈화할 때 사용한다.
-
-
+    > 개발이 어느정도 끝나고나서, Ephemeral상태로 변경하고 `dbt run`을 하면, 해당 view는 demolished된다. 그러나, 주의할점은 해당 view가 Table이나, Incremental이나 연계가 되어있다고 판단하면, DW에서 지우지 않는다. 해당 경우는 `DROP VIEW  [VIEW명]`을 해주면 된다.
 
 
 
